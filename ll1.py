@@ -1,3 +1,4 @@
+import pandas as pd
 class LL1Parser:
     def __init__(self, grammar, terminals: set):
         self.grammar = grammar
@@ -84,13 +85,31 @@ class LL1Parser:
     def print_parsing_table(self):
         print("\n=== LL(1) Parsing Table ===\n")
         terminals = list(self.terminals) + ['$']
-        print("NT\t\t" + "\t\t".join(terminals))
+        print("NT\t" + "\t".join(terminals))
         for nt in self.non_terminals:
             row = [nt]
             for t in terminals:
                 row.append(self.parsing_table[nt].get(t, ""))
             print("\t".join(row))
         print("\n")
+    def print(self):
+        # List of terminals + '$'
+        terminals = list(self.terminals) + ['$']
+        
+        # Create a 2D dictionary (row: non-terminals, col: terminals)
+        table_dict = {}
+        for nt in self.non_terminals:
+            table_dict[nt] = {}
+            for t in terminals:
+                entry = self.parsing_table[nt].get(t, '')
+                table_dict[nt][t] = entry
+
+        # Convert to DataFrame
+        df = pd.DataFrame(table_dict).T  # Transpose to get NTs as rows
+        df.index.name = 'Non-Terminal'
+        print("\n=== LL(1) Parsing Table (Structured) ===\n")
+        print(df.fillna('').to_string())
+
 
 # --------------------------
 # ✅ Grammar Example
@@ -109,3 +128,4 @@ terminals = {'+', '*', '(', ')', 'id'}
 parser = LL1Parser(grammar, terminals)
 parser.construct_parse_table()
 parser.print_parsing_table()
+parser.print()
