@@ -1,0 +1,68 @@
+class SimpleCompiler:
+    def __init__(self):
+        self.instructions = []
+        self.register = 0
+
+    def get_register(self):
+        reg = f"R{self.register}"
+        self.register += 1
+        return reg
+
+    def compile(self, source_code):
+        lines = source_code.strip().split('\n')
+        for line in lines:
+            self.compile_line(line.strip())
+
+    def compile_line(self, line):
+        if '=' in line:
+            var, expr = map(str.strip, line.split('='))
+            reg = self.evaluate_expression(expr)
+            self.instructions.append(f"MOV {var}, {reg}")
+        else:
+            raise ValueError(f"Unsupported statement: {line}")
+
+    def evaluate_expression(self, expr):
+        tokens = expr.split()
+        if len(tokens) == 1:
+            reg = self.get_register()
+            self.instructions.append(f"LOAD {reg}, {tokens[0]}")
+            return reg
+        elif len(tokens) == 3:
+            op1, operator, op2 = tokens
+            reg1 = self.get_register()
+            reg2 = self.get_register()
+            self.instructions.append(f"LOAD {reg1}, {op1}")
+            self.instructions.append(f"LOAD {reg2}, {op2}")
+            reg_result = self.get_register()
+            if operator == '+':
+                self.instructions.append(f"ADD {reg_result}, {reg1}, {reg2}")
+            elif operator == '-':
+                self.instructions.append(f"SUB {reg_result}, {reg1}, {reg2}")
+            elif operator == '*':
+                self.instructions.append(f"MUL {reg_result}, {reg1}, {reg2}")
+            elif operator == '/':
+                self.instructions.append(f"DIV {reg_result}, {reg1}, {reg2}")
+            else:
+                raise ValueError(f"Unsupported operator: {operator}")
+            return reg_result
+        else:
+            raise ValueError(f"Unsupported expression: {expr}")
+
+    def get_target_code(self):
+        return '\n'.join(self.instructions)
+
+
+# Example usage:
+source = """
+"f = c + d"
+"a = f * 4",
+        "b = d * 2",
+        "y = z / 2",
+        "k = x / 2"
+"""
+
+compiler = SimpleCompiler()
+compiler.compile(source)
+print("Generated Target Code:\n")
+print(compiler.get_target_code())
+
